@@ -1,0 +1,23 @@
+---
+title: "Web scraping exercise"
+output: 
+  html_notebook: 
+    highlight: espresso
+    theme: united
+    toc: yes
+    toc_float: no
+---
+
+Repeating the exercises from [here](http://prokulski.net/index.php/2017/04/06/mieszkanie-do-wynajecia/). 
+
+```{r}
+library(rvest)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(stringr)
+
+theme_set(theme_minimal())
+
+```
+

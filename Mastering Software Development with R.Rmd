@@ -1,0 +1,35 @@
+---
+title: "Mastering Software Development with R"
+output: 
+  html_notebook: 
+    highlight: espresso
+    theme: united
+    toc: yes
+    toc_float: yes
+---
+
+# Examples with tidy data
+
+```{r}
+library(tidyr)
+library(dplyr)
+
+# The original data
+
+VADeaths
+
+# Convert to tidy data
+
+VADeaths %>% 
+  tbl_df %>% 
+  mutate(age = row.names(VADeaths)) %>% 
+  # This is a bit confusing, key lumps together all columns not specified, the - sign excludes from the gathering
+  gather(key, death_rate, -age) %>% 
+  separate(key, c("urban", "gender"), sep = " ") %>% 
+  # The original line is verbose
+  # mutate(age = factor(age), urban = factor(urban), gender = factor(gender))
+  mutate_if(is.character, factor)  
+  
+```
+
+
