@@ -1,0 +1,162 @@
+---
+title: "Forecasting with Keras"
+output: html_notebook
+---
+
+Notebook following this tutorial: https://blogs.rstudio.com/tensorflow/posts/2018-06-25-sunspots-lstm/
+
+```{r}
+knitr::opts_chunk$set(eval = T, comment = "", results = "hold", message = F, tidy = T)
+```
+
+
+
+# Setup
+
+```{r}
+library(tidyverse)
+library(glue)
+
+library(timetk)
+library(tidyquant)
+library(tibbletime)
+
+library(cowplot)
+
+library(recipes)
+library(rsample)
+library(yardstick)
+
+library(keras)
+library(tfruns)
+
+```
+# Get the data
+
+```{r}
+sun_spots <- datasets::sunspot.month %>% 
+  tk_tbl() %>% 
+  mutate(index = as_date(index)) %>% 
+  as_tbl_time(index = index)
+
+sun_spots
+  
+```
+
+
+# Plots
+
+```{r}
+p1 <- sun_spots %>% 
+  ggplot(aes(index, value))+
+  geom_point(color = palette_light()[[1]], alpha = .5)+
+  theme_tq()+
+  labs(title = "From 1749 to 2013 (full data)")
+
+p2 <- sun_spots %>% 
+  filter_time("start" ~ "1800") %>% 
+  ggplot(aes(index, value)) + 
+  geom_line(color = palette_light()[[1]], alpha = .5)+
+  geom_point(color = palette_light()[[1]]) + 
+  geom_smooth(method = "loess", span = .2, se = F)+
+  theme_tq()+
+  labs(
+        title = "1749 to 1759 (Zoomed In To Show Changes over the Year)",
+        caption = "datasets::sunspot.month"
+    )
+
+p_title <- ggdraw()+
+  draw_label("Sunspots", size = 18, fontface = 'bold',
+             colour = palette_light()[[1]]) # Not color
+
+plot_grid(p_title, p1, p2, ncol = 1, rel_heights = c(.1, 1, 1))
+
+```
+
+## Backtesting
+
+
+```{r}
+periods_train <- 12 * 100
+periods_test  <- 12 * 50
+skip_span     <- 12 * 22
+
+rolling_origin_resamples <- rolling_origin(
+  sun_spots, 
+  initial = periods_train, 
+  assess = periods_test, 
+  cumulative = F, 
+  skip = skip_span
+)
+  
+rolling_origin_resamples
+
+```
+
+
+```{r}
+plot_split <- function(split, expand_y_axis = T, 
+                       alpha = 1, size = 1, base_size = 14){
+  
+  train_tbl <- training(split) %>% 
+    add_column(key = "training")
+  
+  test_tbl <- testing(split) %>% 
+    add_column(key = "testing")
+
+  data_manipulated <- bind_rows(train_tbl, test_tbl) %>% 
+    as_tbl_time(index = index) %>% 
+    mutate(key = fct_relevel(key, "training", "testing"))
+  
+  train_time_summary <- train_tbl %>% 
+    tk_index() %>% 
+    tk_get_timeseries_summary()
+  
+  test_time_summary <- test_tbl %>% 
+    tk_index() %>% 
+    tk_get_timeseries_summary()
+
+  g <- data_manipulated %>% 
+    ggplot()+
+    aes(x = index, y = value, color = key)+
+    geom_line(size = size, alpha = alpha)+
+    theme_tq(base_size = base_size)+
+    scale_color_tq()+
+    labs(title = glue("Split: {split$id}"),
+         subtitle = glue("{train_time_summary$start} to ", 
+                         "{test_time_summary$end}"), 
+         y = "", x = ""
+    )+
+    theme(legend.position = "none")
+  
+  if(expand_y_axis){
+  sun_spots_time_summary <- sun_spots %>% 
+    tk_index() %>% 
+    tk_get_timeseries_summary()
+      
+  g <- g + 
+    scale_x_date(limits = c(sun_spots_time_summary$start, 
+                            sun_spots_time_summary$end))
+  
+  }
+  
+  g
+  
+}
+```
+
+```{r}
+rolling_origin_resamples$splits[[1]] %>% 
+  plot_split(expand_y_axis = T) +
+  theme(legend.position = "bottom")
+```
+
+
+
+
+
+
+
+
+
+
