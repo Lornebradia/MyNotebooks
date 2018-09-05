@@ -234,8 +234,18 @@ rec_obj <- recipe(value ~ ., df) %>%
   step_center(value) %>%
   step_scale(value) %>%
   prep()
+
+df_processed_tbl <- bake(rec_obj, df)
+
+df_processed_tbl
 ```
 
+```{r}
+center_history <- rec_obj$steps[[2]]$means["value"]
+scale_history  <- rec_obj$steps[[3]]$sds["value"]
+
+c("center" = center_history, "scale" = scale_history)
+```
 
 
 
