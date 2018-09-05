@@ -1,11 +1,6 @@
 ---
 title: "Mastering Software Development with R"
-output: 
-  html_notebook: 
-    highlight: espresso
-    theme: united
-    toc: yes
-    toc_float: yes
+output: html_notebook
 ---
 
 # Examples with tidy data
