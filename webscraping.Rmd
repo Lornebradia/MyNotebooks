@@ -1,5 +1,6 @@
 ---
 title: "Web scraping exercise"
+output: html_notebook
 ---
 
 Repeating the exercises from [here](http://prokulski.net/index.php/2017/04/06/mieszkanie-do-wynajecia/). 
