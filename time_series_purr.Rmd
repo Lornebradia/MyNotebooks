@@ -1,0 +1,92 @@
+---
+title: "Rsample and time series"
+output: html_notebook
+---
+
+I don't remember whence is this coming from. 
+
+```{r, comment = ""}
+knitr::opts_chunk$set(comment = "", echo = T)
+
+library(tidyverse)
+library(tsibble)
+library(rsample)
+
+data(co2)
+``` 
+
+`co2` data is the monthly times series of CO$_2$ from Jan 1956 to Dec 1994. As a standard class `r class(co2)` object, it is notoriously hard to work around with. So the best thing is to convert it to a more practical format, such as a _tsibble_: 
+
+```{r}
+co2 <- as_tsibble(co2) %>% 
+  rename(time = index) %>% 
+  mutate(time = as.Date(time))
+
+co2 
+
+```
+
+So much better. Even if the printout on rmarkdown is not pretty (we could use `knitr::kable` or work it a bit with the `formattable` package), it is actually easier to extract info from it. 
+
+For example, we can get the first and the last dates quite easily: 
+
+```{r}
+min(co2$time) 
+max(co2$time)
+```
+
+Ok, continuing. `rsample::rolling_origin` can do a resampling of the original time series taking into account the time nature of the series: instead of randomly selecting points from the series (as you would with non-timed data) to produce _n_ samples, it produces samples whose data points are consecutive. 
+
+The help file is not particularly... well, helful. In particular, the parameters `initial`, `assess` and `cumulative` are confusing. 
+
+* initial means ... TBC
+* assess means ... TBC
+* cumulative means ... TBC
+
+
+```{r}
+(roll_co2 <- rolling_origin(
+  co2, 
+  initial = 12*30, 
+  assess = 12,
+  cumulative = F
+))
+
+```
+
+Let's have a look at it:
+
+```{r}
+roll_co2 %>% pluck("splits") %>% pluck(1) %>% str
+```
+
+It's actually a pretty complicated structure: We have the `data` with `time`, `value`, and a bunch of attributes such as indices, names and intervals. In addition to the `data` we have an _internal_ index (1, 2, 3...) `in_id` and an external one (matching the original time series, I presume) `out_id`. Finally, an `id` for the slice is provided. 
+
+```{r}
+get_date <- function(x) {
+  min(assessment(x)$time)
+}
+
+start_date <- map(roll_co2$splits, get_date)
+roll_co2$start_date <- do.call("c", start_date)
+
+roll_co2
+
+library(forecast)
+
+fit_model <- function(x, ...){
+  x %>% 
+    analysis() %>% 
+    tk_ts(start = .$time[[1]] %>% as.yearmon(), 
+          frequency = 12, 
+          silent = T) %>% 
+    auto.arima(...)
+}
+
+library(purrr)
+
+roll_co2$arima <- map(roll_co2$splits, fit_model)
+
+roll_co2$arima[[1]]
+```
+
