@@ -1,0 +1,29 @@
+---
+title: "presentation"
+author: "Lorenzo Braschi"
+date: "1/21/2019"
+output: powerpoint_presentation
+---
+
+# A section
+
+## What is this? 
+
+A PowerPoint presentation built from R using RMarkdown (version `r packageVersion("rmarkdown")`) and `r system("pandoc -v | head -n1", intern = T)`. 
+
+# Another section
+
+## A plot
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="A caption"}
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(dplyr))
+
+mtcars %>% 
+  mutate(cyl = as.factor(cyl)) %>% 
+  ggplot(aes(mpg, disp, color = cyl)) + 
+  geom_point()+
+  facet_grid(~cyl)
+
+```
+
