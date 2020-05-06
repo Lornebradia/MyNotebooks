@@ -1,5 +1,6 @@
 ---
-title: "Setup"
+title: "Slack Setup"
+tags: [slack]
 output: github_document
 ---
 

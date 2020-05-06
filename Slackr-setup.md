@@ -1,4 +1,4 @@
-Setup
+Slack Setup
 ================
 
 Notes on how to configure `slackr` to work in mac machines. Ripped from
@@ -48,5 +48,5 @@ And then you’re set.
 You can send messages to slack from R using:
 
 ``` r
-slackr::slackr_channels()
+slackr::slackr_msg()
 ```
