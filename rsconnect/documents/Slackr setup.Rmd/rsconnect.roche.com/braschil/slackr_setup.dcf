@@ -1,0 +1,12 @@
+name: slackr_setup
+title: Slackr setup
+username: braschil
+account: braschil
+server: rsconnect.roche.com
+hostUrl: https://rsconnect.roche.com/__api__
+appId: 1194
+bundleId: 5794
+url: https://rsconnect.roche.com:443/content/1194/
+when: 1576763821.87507
+asMultiple: FALSE
+asStatic: FALSE
